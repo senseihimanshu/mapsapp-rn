@@ -5,6 +5,7 @@ import Screen2 from "./src/Screens/Screen2";
 import Screen3 from "./src/Screens/Screen3";
 import Screen4 from "./src/Screens/Screen4";
 import Screen5 from "./src/Screens/Screen5";
+import {Ionicons} from '@expo/vector-icons';
 
   const tabOptions = {
       tabBarOptions: {
@@ -19,14 +20,25 @@ import Screen5 from "./src/Screens/Screen5";
               backgroundColor: 'red'
           },
           labelStyle: {
-              fontSize: 18,
+              fontSize: 14,
               paddingBottom: 10,
           }
       },
   };
 
   const App = createBottomTabNavigator({
-          map: {screen: MapScreen, navigationOptions: {title: 'Map'}},
+      map: {
+          screen: MapScreen,
+          navigationOptions: () => ({
+              tabBarIcon: ({tintColor}) => (
+                  <Ionicons
+                      name="ios-map"
+                      color={tintColor}
+                      size={22}
+                  />
+              )
+          })
+      },
           screen2: {screen: Screen2},
           screen3: {screen: Screen3},
           screen4: {screen: Screen4},
