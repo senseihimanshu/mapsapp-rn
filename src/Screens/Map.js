@@ -14,10 +14,14 @@ class Map extends Component {
             latitude: null,
             longitude: null,
             error:null,
+<<<<<<< HEAD
 
             text: '',
 
             markers: []
+=======
+            text: ''
+>>>>>>> 8ce52f8ca619ed7baf3f6ce426db5a74d8d31183
         };
     }
 
@@ -61,6 +65,7 @@ class Map extends Component {
     render() {
 
         return (
+<<<<<<< HEAD
             <View style={{flex:1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between'}}>
                 {/*<Callout style={{flex: 2, backgroundColor: "#fff", width: "100%", zIndex: 1, marginVertical: '8%'}}>*/}
                 {/*    <GooglePlacesAutocomplete*/}
@@ -176,6 +181,71 @@ class Map extends Component {
                 }
 
 
+=======
+            <View style={{flex: 1}}>
+                    <MapView.Callout style={{backgroundColor: "#fff", position: "absolute", top: 40, elevation: 10, width: "100%", zIndex: 1}}>
+                        <GooglePlacesAutocomplete
+                            placeholder="Search"
+                            minLength={2} // minimum length of text to search
+                            autoFocus={false}
+                            returnKeyType={'search'} // Can be left out for default return key https://facebook.github.io/react-native/docs/textinput.html#returnkeytype
+                            listViewDisplayed="auto" // true/false/undefined
+                            fetchDetails={true}
+                            renderDescription={row => row.description} // custom description render
+                            onPress={(data, details = null) => {
+                                // 'details' is provided when fetchDetails = true
+                                console.log(data);
+                                console.log(details);
+                            }}
+                            getDefaultValue={() => {
+                                return ''; // text input default value
+                            }}
+                            query={{
+                                // available options: https://developers.google.com/places/web-service/autocomplete
+                                key: 'AIzaSyC2QhtACfVZ2cr9HVvxQuzxd3HT36NNK3Q',
+                                language: 'en', // language of the results
+                                types: ["locality", "political", "geocode"], // default: 'geocode'
+                            }}
+                            styles={{
+                                description: {
+                                    fontWeight: 'bold',
+                                },
+                                predefinedPlacesDescription: {
+                                    color: '#1faadb',
+                                },
+                            }}
+                            // currentLocation={true} // Will add a 'Current location' button at the top of the predefined places list
+                            currentLocationLabel="Current location"
+                            nearbyPlacesAPI="GooglePlacesSearch" // Which API to use: GoogleReverseGeocoding or GooglePlacesSearch
+                            GoogleReverseGeocodingQuery={{
+                                // available options for GoogleReverseGeocoding API : https://developers.google.com/maps/documentation/geocoding/intro
+                            }}
+                            GooglePlacesSearchQuery={{
+                                // available options for GooglePlacesSearch API : https://developers.google.com/places/web-service/search
+                                rankby: 'distance',
+                                types: 'food',
+                            }}
+                            filterReverseGeocodingByTypes={[
+                                'locality',
+                                'administrative_area_level_3',
+                            ]} // filter the reverse geocoding results by types - ['locality', 'administrative_area_level_3'] if you want to display only cities
+                            // predefinedPlaces={[homePlace, workPlace]}
+                            debounce={200}
+                        />
+                    </MapView.Callout>
+                { this.state.latitude ?
+                    <MapView
+                        style={{flex: 1, height: "100%", width: "100%", elevation: -10}}
+                        region={{
+                            latitude: this.state.latitude,
+                            longitude: this.state.longitude,
+                            latitudeDelta: 0.0922,
+                            longitudeDelta: 0.0421
+                        }}
+                        showsUserLocation={true}
+                    /> : null
+                }
+>>>>>>> 8ce52f8ca619ed7baf3f6ce426db5a74d8d31183
             </View>
         );
     }
