@@ -79,19 +79,23 @@ class Map extends Component {
       });
   };
 
-  toggleModal = (info) => {
+  toggleModal = () => {
     this.setState({ isModalVisible: !this.state.isModalVisible }, () => {
       console.log("Inside toggleModal", this.state.isModalVisible);
-      this.showModalInfo(info);
     });
   };
 
   showModalInfo = info => {
     console.log(info, "inside show modal info");
     this.setState({
+      modal: {
         name: info.name,
         icon: info.icon,
         vicinity: info.vicinity
+      }
+    }, () => {
+      this.toggleModal();
+      console.log('i am info', info);
     });
   };
 
@@ -248,7 +252,8 @@ class Map extends Component {
                       }}
                       onCalloutPress={() => {
                         console.log("Pressed Callout");
-                        this.toggleModal(cur);
+                        this.showModalInfo(cur);
+                        console.log('i am ', cur);
                       }}
                     />
                   </View>
