@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, Image } from "react-native";
 import MapView, { Circle, Marker, Callout } from "react-native-maps";
 import axios from "axios";
 import Modal from "react-native-modal";
+import { Rating } from 'react-native-ratings';
+
 // import {Ionicons} from '@expo/vector-icons';
 
 // import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -24,7 +26,8 @@ class Map extends Component {
       modal: {
           name: null,
           icon: null,
-          vicinity: null
+          vicinity: null,
+          rating: 0
       }
     };
   }
@@ -91,13 +94,15 @@ class Map extends Component {
       modal: {
         name: info.name,
         icon: info.icon,
-        vicinity: info.vicinity
+        vicinity: info.vicinity,
+        rating: info.rating
       }
     }, () => {
       this.toggleModal();
       console.log('i am info', info);
     });
   };
+
 
   render() {
     return (
@@ -266,14 +271,26 @@ class Map extends Component {
 
         {
           <Modal isVisible={this.state.isModalVisible} style={{backgroundColor: 'white'}}>
-            <View style={{ flex: 1 }}>
-              <Text>Place: { this.state.modal.name }</Text>
-              <Image
-                style={{width: 50, height: 50}}
-                source={this.state.modal.icon}
+            <View style={{flex: 1, flexDirection: 'column', justifyContent: "space-between"}}>
+              <View style={{ flex: 0.6, display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
+                <Text style={{color: '#777'}}>Place: <Text style={{fontSize: 22, color: '#393'}}> { this.state.modal.name }</Text></Text>
+                <Text style={{color: '#777'}}>Address: <Text style={{fontSize: 22, color: '#393'}}>{ this.state.modal.vicinity }</Text></Text>
+
+ 
+                <Rating
+                  style={{ paddingVertical: 10 }}
+                  startingValue={this.state.modal.rating}
+                  readonly={true}
                 />
-              <Text>Address: { this.state.modal.vicinity }</Text>
-              <Button title="Hide modal" onPress={this.toggleModal} />
+
+              </View>
+              <View>
+                <Image
+                  style={{width: 50, height: 50}}
+                  source={this.state.modal.icon}
+                  />
+                <Button title="Close" onPress={this.toggleModal} />
+              </View>
             </View>
           </Modal>
         }
