@@ -1,6 +1,6 @@
 import React from 'react';
 import { createBottomTabNavigator, createAppContainer } from "react-navigation";
-import MapScreen from './src/Screens/Map'
+import MapScreen from './src/Screens/map/Map';
 import Screen2 from "./src/Screens/Screen2";
 import Screen3 from "./src/Screens/Screen3";
 import Screen4 from "./src/Screens/Screen4";
