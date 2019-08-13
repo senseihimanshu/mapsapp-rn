@@ -25,6 +25,12 @@
     ],
     "ios": {
       "supportsTablet": true
+    },
+    "android": {
+      "package": "com.bitcs.maps",
+      "versionCode": 1,
+      "permissions": ["Location"],
+      "icon": "./assets/maps.png"
     }
   }
 }
