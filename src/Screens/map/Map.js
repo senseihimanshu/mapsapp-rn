@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, Button, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, Button, Image, StyleSheet, TouchableOpacity, Platform, PermissionsAndroid } from "react-native";
 import MapView, { Circle, Marker } from "react-native-maps";
 import axios from "axios";
 import {dismissModal, showModal, wrapIntoModal} from 'expo-modal';
@@ -8,7 +8,29 @@ import Autocomplete from "react-native-autocomplete-input";
 
 import constants from "./constants/constants";
 
+export async function request_location_runtime_permission() {
 
+    try {
+        const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+                'title': 'ReactNativeCode Location Permission',
+                'message': 'ReactNativeCode App needs access to your location '
+            }
+        )
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+
+            Alert.alert("Location Permission Granted.");
+        }
+        else {
+
+            Alert.alert("Location Permission Not Granted");
+
+        }
+    } catch (err) {
+        console.warn(err)
+    }
+}
 
 class Map extends Component {
   constructor(props) {
@@ -28,7 +50,34 @@ class Map extends Component {
     };
   }
 
-  componentDidMount() {
+  componentWillMount() {
+      // requestCameraPermission = async() => {
+      //     try {
+      //         const granted = await PermissionsAndroid.request(
+      //             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      //             {
+      //                 title: 'Map App requires location permission',
+      //                 message:
+      //                     'Map App needs access to your location ' +
+      //                     'so you can use it well.',
+      //                 buttonNeutral: 'Ask Me Later',
+      //                 buttonNegative: 'Cancel',
+      //                 buttonPositive: 'OK',
+      //             },
+      //         );
+      //         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      //             console.log('You can use the location');
+      //         } else {
+      //             console.log('Location permission denied');
+      //         }
+      //     } catch (err) {
+      //         console.warn(err);
+      //     }
+      // };
+  }
+
+
+    componentDidMount = async() => {
     //getting current location of user
     navigator.geolocation.getCurrentPosition(
       position => {
@@ -44,7 +93,10 @@ class Map extends Component {
       error => this.setState({ regionError: error.message }),
       { enableHighAccuracy: false, timeout: 200000, maximumAge: 1000 }
     );
-  }
+
+    //asking for location permission
+        await request_location_runtime_permission()
+    };
 
 
   searchSuggestion = async (term) => {
@@ -96,6 +148,7 @@ class Map extends Component {
     const { latitude, longitude } = this.state.region;
     const { markers, query, suggestionData } = this.state;
 
+
     return (
         wrapIntoModal(
       <View
@@ -105,12 +158,109 @@ class Map extends Component {
           flexDirection: "column",
           justifyContent: "space-between",
           alignItems: "center",
-            marginTop: '12%'
+            marginTop: '8%'
         }}
       >
-        <Autocomplete containerStyle={{
-            width: '86%'
-        }}
+      {latitude && longitude ? (
+          <MapView
+              region={this.state.region}
+              showsUserLocation={true}
+              style={{ ...styles.map, zIndex: -10, elevation: -1 }}
+          >
+              <Circle
+                  center={{
+                      latitude,
+                      longitude
+                  }}
+                  radius={constants.radius}
+                  strokeWidth={1}
+                  strokeColor={"#1a66ff"}
+                  fillColor={"rgba(230,238,255,0.5)"}
+              />
+
+              {/* Current position marker */}
+              <Marker
+                  key={'center_position'}
+                  title={"Center"}
+                  description={"position you fixed"}
+                  coordinate={{
+                      latitude: latitude,
+                      longitude: longitude
+                  }}
+                  pinColor={"green"}
+                  draggable
+                  onDragEnd={e => {
+                      console.log("inside draggable", e.nativeEvent.coordinate);
+                      this.setState({
+                          region: {...this.state.region,
+                              latitude: e.nativeEvent.coordinate.latitude,
+                              longitude: e.nativeEvent.coordinate.longitude}
+                      }, () => this.handleSearch());
+                  }}
+              />
+
+              {/* Adding relevant markers on the map */}
+              {markers.length > 0 &&
+              markers.map(cur => {
+                  return (
+                      <Marker
+                          key={(
+                              `${cur.geometry.location.lat}${cur.geometry.location.lng}`
+                          )}
+                          title={cur.name}
+                          description={cur.vicinity}
+                          coordinate={{
+                              latitude: cur.geometry.location.lat,
+                              longitude: cur.geometry.location.lng
+                          }}
+                          onCalloutPress={() => {
+                              console.log("i am ", cur);
+                              showModal(
+                                  <View style={{flex: 1, flexDirection: 'column', justifyContent: "space-between", backgroundColor: 'white', width: '100%'}}>
+                                      <View style={{ flex: 0.6, display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
+
+                                          {cur.photos ? (
+                                              <Image style={{width: '100%', height: '40%'}}
+                                                     source={{uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${cur.photos[0].photo_reference}&key=${constants.key}\n`}}
+                                              />
+                                          ) : (
+                                              <Text />
+                                          )}
+
+                                          <Text style={{color: '#777'}}>Place: <Text style={{fontSize: 22, color: '#393'}}> { cur.name }</Text></Text>
+                                          <Text style={{color: '#777'}}>Address: <Text style={{fontSize: 22, color: '#393'}}>{ cur.vicinity }</Text></Text>
+
+                                          {cur.opening_hours ? (<Text style={{color: '#777'}}>Currently Open: <Text style={{fontSize: 22, color: '#393'}}>{ cur.opening_hours.open_now ? 'Yes' : 'No' }</Text></Text>): (<Text />)}
+
+
+                                          <Rating
+                                              style={{ paddingVertical: 10 }}
+                                              startingValue={cur.rating}
+                                              readonly={true}
+                                          />
+
+
+                                          <Button title="Close" onPress={()=>dismissModal()}>Close</Button>
+
+
+                                      </View>
+                                      <View>
+
+                                      </View>
+                                  </View>
+
+                              );
+
+                          }}
+                      />
+                  );
+              })}
+          </MapView>
+      ) : (
+          <Text>Please give location permission to this app!!!</Text>
+      )}
+
+        <Autocomplete containerStyle={styles.autocomplete}
           autoCapitalize="none"
           autoCorrect={false}
           data={suggestionData}
@@ -141,104 +291,10 @@ class Map extends Component {
             </TouchableOpacity>
           )}
         />
-          <TouchableOpacity onPress={async() => { await this.handleSearch(); this.setState({query: ''}) }} style={{position: 'absolute', right: '6%', top: '1.4%', zIndex: 1}}>
+          <TouchableOpacity onPress={async() => { await this.handleSearch(); this.setState({query: ''}) }} style={{position: 'absolute', right: '6%', top: '1.4%', zIndex: 10}}>
               <Text>Search</Text>
           </TouchableOpacity>
 
-
-          {latitude && longitude ? (
-          <MapView
-            region={this.state.region}
-            showsUserLocation={true}
-            style={{ ...styles.map }}
-          >
-            <Circle
-              center={{
-                latitude,
-                longitude
-              }}
-              radius={constants.radius}
-              strokeWidth={1}
-              strokeColor={"#1a66ff"}
-              fillColor={"rgba(230,238,255,0.5)"}
-            />
-
-            {/* Current position marker */}
-            <Marker
-                key={'center_position'}
-              title={"Center"}
-              description={"position you fixed"}
-              coordinate={{
-                latitude: latitude,
-                longitude: longitude
-              }}
-              pinColor={"green"}
-              draggable
-              onDragEnd={e => {
-                console.log("inside draggable", e.nativeEvent.coordinate);
-                this.setState({
-                    region: {...this.state.region,
-                  latitude: e.nativeEvent.coordinate.latitude,
-                  longitude: e.nativeEvent.coordinate.longitude}
-                }, () => this.handleSearch());
-              }}
-            />
-
-            {/* Adding relevant markers on the map */}
-            {markers.length > 0 &&
-              markers.map(cur => {
-                return (
-                  <Marker
-                    key={(
-                      `${cur.geometry.location.lat}${cur.geometry.location.lng}`
-                    )}
-                    title={cur.name}
-                    description={cur.vicinity}
-                    coordinate={{
-                      latitude: cur.geometry.location.lat,
-                      longitude: cur.geometry.location.lng
-                    }}
-                    onCalloutPress={() => {
-                      console.log("i am ", cur);
-                      showModal(
-                          <View style={{flex: 1, flexDirection: 'column', justifyContent: "space-between", backgroundColor: 'white', width: '100%'}}>
-                              <View style={{ flex: 0.6, display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
-                                  <Image style={{width: '100%', height: '40%'}}
-                                    source={{uri: `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${cur.photos[0].photo_reference}&key=${constants.key}\n`}}
-                                  />
-
-                                  <Text style={{color: '#777'}}>Place: <Text style={{fontSize: 22, color: '#393'}}> { cur.name }</Text></Text>
-                                  <Text style={{color: '#777'}}>Address: <Text style={{fontSize: 22, color: '#393'}}>{ cur.vicinity }</Text></Text>
-
-                                  {cur.opening_hours ? (<Text style={{color: '#777'}}>Currently Open: <Text style={{fontSize: 22, color: '#393'}}>{ cur.opening_hours.open_now ? 'Yes' : 'No' }</Text></Text>): (<Text />)}
-
-
-                                  <Rating
-                                      style={{ paddingVertical: 10 }}
-                                      startingValue={cur.rating}
-                                      readonly={true}
-                                  />
-
-
-                                  <Button title="Close" onPress={()=>dismissModal()}>Close</Button>
-
-
-                              </View>
-                              <View>
-
-                              </View>
-                          </View>
-
-                      );
-
-                    }}
-                  />
-                );
-              })}
-          </MapView>
-        ) : (
-          <Text>Please give location permission to this app!!!</Text>
-        )}
       </View>
     ));
   }
@@ -247,9 +303,17 @@ class Map extends Component {
 export default Map;
 
 styles = StyleSheet.create({
+  autocomplete: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '90%',
+  },
   map: {
-    minHeight: "100%",
-    minWidth: "100%"
+    minWidth: "100%",
+    position: 'absolute',
+    top: 50,
+    height: '90%',
   },
     itemText: {
       borderWidth: 1,
